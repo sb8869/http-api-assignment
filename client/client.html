@@ -5,7 +5,72 @@
   <link rel="stylesheet" type="text/css" href="/style.css">
   
   <script>
+    
+    const handleResponse = async (response) => {
+      const content = document.getElementById('content');
+      const resText = await response.text();
 
+      switch(response.status) {
+        case 200: 
+          content.innerHTML = '<b>Success</b>';
+          break;
+        case 400:
+          content.innerHTML = '<b>Bad request</b>';
+          break;
+        case 401:
+          content.innerHTML = '<b>Unauthorized</b>'
+          break;
+        case 403:
+          content.innerHTML = '<b>Forbidden</b>'
+          break;
+        case 404:
+          content.innerHTML = `<b>Not Found</b>`;
+          break;
+        case 500:
+          content.innerHTML = '<b>Internal Server Error</b>'
+          break;
+        case 501:
+          content.innerHTML = '<b>Not Implemented</b>'
+          break;
+        default:
+          content.innerHTML = `<p>Error, page not found</p>`;
+          break;
+      }      
+
+      const contentType = response.headers.get('Content-Type');
+      const h1 = document.createElement('h1');
+
+      if(contentType === 'application/json') {
+          let parsedResponse = JSON.parse(resText);
+          h1.textContent = `${parsedResponse.message}`;
+        } else if (contentType === 'text/xml') {
+          let parsedResponse = new window.DOMParser().parseFromString(resText, 'text/xml');
+          h1.textContent = `${parsedResponse.querySelector('message').textContent}`;
+        }
+
+        content.appendChild(h1);
+    };
+
+    const sendFetchRequest = async () => {
+      const url = document.getElementById('page').value;
+      const mimeType = document.getElementById('type').value;
+      
+      const options = {
+        headers: {'Accept': mimeType},
+      };
+
+      const response = await fetch(url, options);
+
+      handleResponse(response);
+    };
+
+    const init = () => {
+      const submit = document.getElementById('send');
+
+      submit.addEventListener('click', sendFetchRequest);
+    };
+
+    window.onload = init;
   </script>
 </head>
 <body>
